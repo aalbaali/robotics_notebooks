@@ -280,11 +280,11 @@ The tangent space is then defined as the set of *all possible time derivative of
 # ╔═╡ 91e97df5-571f-4234-9abc-c757cc84d1d3
 md"""
 Matrix Lie groups are smooth manifolds, and smooth manifolds have the same *structure* of the tangent space *everywhere*.
-Therefore, vectors in tangent space at $\mathbf{X}\in G$, denoted by $\dot{\mathbf{X}}\in T_{\mathbf{X}}G$ can be mapped to the tangent space at $\mathbf{YX}\in G$ by premultiplying the tangent vector with $\mathbf{Y}$
+Therefore, vectors in tangent space at $\mathbf{X}\in G$, denoted by $\dot{\mathbf{X}}\in T_{\mathbf{X}}G$ can be mapped to the tangent space at $\mathbf{YX}\in G$ by premultiplying the tangent vector with $\mathbf{Y}\in G$
 ```math
 \mathbf{Y}\dot{\mathbf{X}} \in T_{\mathbf{Y}\mathbf{X}}G.
 ```
-Similarly, to map the tangent vector at $\mathbf{X}\in G$ to the tangent space at $\mathbf{X}\mathbf{Y}$, postmultiply the tangent vector with $\mathbf{Y}$
+Similarly, to map the tangent vector at $\mathbf{X}\in G$ to the tangent space at $\mathbf{X}\mathbf{Y}$, postmultiply the tangent vector with $\mathbf{Y}\in G$
 ```math
 \dot{\mathbf{X}}\mathbf{Y}\in T_{\mathbf{X}\mathbf{Y}}G.
 ```
@@ -505,7 +505,7 @@ md"""
 
 # ╔═╡ bea4ee58-1561-45e3-b585-a9277471de18
 md"""
-Set the code for compouting $\mathbf{v}_{r}$
+Set the code for computing $\mathbf{v}_{r}$
 ```math
 \mathbf{v}_{r}(\boldsymbol{\xi}, \dot{\boldsymbol{\xi}})
 =
