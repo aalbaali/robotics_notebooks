@@ -43,8 +43,8 @@ For example, consider the planar *special euclidean* matrix Lie group $SE(2)$, w
 \end{bmatrix}
 =
 \begin{bmatrix}
-	\cos(\theta) & -\sin(\theta) & t_{1} \\
- 	\sin(\theta) & \cos(\theta) & t_{2} \\
+	\cos(\theta) & -\sin(\theta) & r_{1} \\
+ 	\sin(\theta) & \cos(\theta) & r_{2} \\
  		0 		 & 		0 		& 1
 \end{bmatrix}
 \in SE(2) \subset \mathbb{R}^{3\times 3},
