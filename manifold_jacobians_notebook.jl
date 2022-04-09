@@ -473,7 +473,7 @@ So I wrote a simple finite-difference operator that takes the partial derivative
 
 # ╔═╡ 41e9f170-823b-483e-a0f3-3e5476d5abe7
 md"""
-## Finite-difference operator
+### Finite-difference operator
 """
 
 # ╔═╡ fb49ca00-af11-435f-bcdd-0374a9829f90
@@ -481,7 +481,7 @@ finite_diff_i(i, f, x; ϵ=1e-6) = (f(x + collect(sparse([i], [1], ϵ, length(x),
 
 # ╔═╡ e221041b-2b25-466e-a48f-be750bcb2507
 md"""
-## $\dot{\mathbf{X}}$ function
+### Manifold derivative
 """
 
 # ╔═╡ 20833d04-b886-4803-befd-ab13f2453051
@@ -500,7 +500,7 @@ Ẋ(ξ, ξ̇) = sum([finite_diff_i(i, Exp, ξ) for i ∈ 1:length(ξ)] .* ξ̇);
 
 # ╔═╡ 0cd16849-dbc9-42d8-9c9a-9af28b9d4397
 md"""
-## Right Lie algebra vector
+### Right Lie algebra vector
 """
 
 # ╔═╡ bea4ee58-1561-45e3-b585-a9277471de18
@@ -527,7 +527,7 @@ vᵣ(ξ, ξ̇) = vee(Exp(ξ) \ Ẋ(ξ, ξ̇));
 
 # ╔═╡ cdc12286-d7ba-4af8-86c8-6dd387ca728e
 md"""
-## The right Jacobian
+### The right Jacobian
 """
 
 # ╔═╡ 63493ee3-dfeb-49d9-b8a0-1eb9bb0080d1
@@ -556,7 +556,7 @@ Jᵣ(ξ) = ForwardDiff.jacobian(ξ̇ -> vᵣ(ξ, ξ̇), ξ);
 
 # ╔═╡ e92d6825-80c7-49cc-92f8-d0e38cbdc86b
 md"""
-## Evaluating the Jacobian
+### Comparing with analytic solution
 """
 
 # ╔═╡ b139b79e-0d16-4f3a-88ad-cf591d47a42f
@@ -1001,7 +1001,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 
 # ╔═╡ Cell order:
 # ╠═bff69758-b72f-11ec-302f-d381893b0229
-# ╠═c6010a83-3fd2-4f24-88de-6ebd685e78ca
+# ╟─c6010a83-3fd2-4f24-88de-6ebd685e78ca
 # ╟─24395b9c-ab7e-40fb-8438-032d34e03ca0
 # ╟─8332f1c2-7b68-4fb4-acab-cf9838259796
 # ╟─a16ccdde-0b0c-4647-a1a6-20835be22f5c
