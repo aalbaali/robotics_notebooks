@@ -510,7 +510,7 @@ Set the code for computing $\mathbf{v}_{r}$
 \mathbf{v}_{r}(\boldsymbol{\xi}, \dot{\boldsymbol{\xi}})
 =
 \left(
-\mathbf{X}^{-1}\dot{\mathbf{X}}
+\mathbf{X}(\boldsymbol{\xi})^{-1}\dot{\mathbf{X}}(\boldsymbol{\xi}, \dot{\boldsymbol{\xi}})
 \right)^{\vee}
 =
 \left(
