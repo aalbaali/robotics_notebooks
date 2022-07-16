@@ -4,13 +4,8 @@
 using Markdown
 using InteractiveUtils
 
-# ╔═╡ 6a968844-12d0-44f8-96de-42630497d057
-begin
-	using PlutoUI
-	PlutoUI.TableOfContents(title="📚 Table of Contents", indent=true, depth=4, aside=true)
-end
-
-# ╔═╡ 6d66d952-3b87-468c-ad35-39790b31d846
+# ╔═╡ a4a34b53-0d29-4c6e-b1cb-9eece1accbb7
+# Packages
 begin
 	using Plots;
 	using FFTW;
@@ -18,29 +13,45 @@ begin
 	using ShortCodes;
 end
 
+# ╔═╡ 6689be7b-68de-4c73-a3d3-8bff9bb96662
+# TOC	
+begin
+	using PlutoUI
+	PlutoUI.TableOfContents(title="📚 Table of Contents", indent=true, depth=4, aside=true)	
+end
+
 # ╔═╡ 831f8744-d659-11ec-3d14-090c4a016610
 md"""
-# Overview
-Recently, I've been trying implement navigation algorithms on real robots using real sensors data, which requires looking into things that may be trivial when running a simulation but not so trivial when running on real data.
-For example, what is the covariance of the signal noise?
-Wait... is there a *covariance* on a *continuous* random signal/process?
-Is that what the notion of *autocovariance* comes in?
-It's possibly related to the power spectral density (PSD).
-So, what is a PSD?
+# Introduction
+I've been working on implementing navigation algorithms on real robots using real sensor data, which some data processing;
+something that's overlooked at when running a simulation.
+For instance, many signals in the real world, such as the current passing through a resistor, are continuous.
+However, such signals are measured by sensors and then processed by computers, which store the data *digitally*.
+That is, the signals are discretized before storing and processing them.
 
-Well, it turns out that Fourier transforms are at the heart of this problem.
+[*Digital signal processing* (DSP)](https://en.wikipedia.org/wiki/Digital_signal_processing) is an engineering field that addresses such challenges of discretizing signals, processing digital information, and converting such information back to continuous signals.
+An example of a DSP application is filtering out a signal noise, which can be done by decomposing the signal into its frequency components and that's where the [*Fourier transforms* (FT)](https://en.wikipedia.org/wiki/Fourier_transform) come into play.
+The Fourier transform is a powerful and popular tool in DSP.
+Thus, a good understanding of this transform is essential to understanding many of the DSP tools.
+
+The Fourier transform comes in different flavors:
+there's the FT, the [*discrete-time Fourier transform* (DTFT)](https://en.wikipedia.org/wiki/Discrete-time_Fourier_transform), the [*discrete Fourier transform* (DFT)](https://en.wikipedia.org/wiki/Discrete_Fourier_transform), and of course there's the popular [*fast Fourier transform* (FFT)](https://en.wikipedia.org/wiki/Fast_Fourier_transform) *algorithm*.
+There are subtle differences between these terms, which I'd like to present in this notebook.
+
+Every now and then, I find myself going back to my DSP notes, and specifically to the DFT, which is the theory behind the FFT algorithm.
 Thus, I decided to write a brief primer on Fourier transforms and how to use them.
 In this notebook, a high- to mid-level introduction to Fourier transforms are introduced with an example at the end.
-This will *not* be a detailed introduction to Fourier transforms but rather I'll try to give some insights that I found useful when trying to understand Fourier transforms.
+This will *not* be a detailed introduction to Fourier transforms but rather a practical introduction with some insight that I find useful whenever going back to my Fourier transform notes.
 """
 
 # ╔═╡ 5dec98a0-95b1-4cf5-a71f-27f3d4ac8139
 md"""
 # Fourier Transform (FT)
-The Fourier transform takes a continuous signal $x(t)\in\mathbb{R}$ as a function of time $t\in\mathbb{R}$ and decomposes it into its *frequency* components $X(\xi)\in\mathbb{C}$, denoted by an upper case in thid document.
-The frequencies could be [temporal](https://en.wikipedia.org/wiki/Frequency) (i.e., time-based), as in they could have units of cycles/sec, which are also referred to as Hz, or they could be [spatial](https://en.wikipedia.org/wiki/Spatial_frequency). For example, they could have units of cycles/meter.
+The Fourier transform takes a continuous signal $x(t)\in\mathbb{R}$ as a function of time $t\in\mathbb{R}$ and decomposes it into its *frequency* components $X(\xi)\in\mathbb{C}$, where $\xi\in\mathbb{R}$ is the frequency.
+The transformed components are denoted by an upper case in this document.
+The frequencies could be [temporal](https://en.wikipedia.org/wiki/Frequency) (i.e., time-based), as in they could have units of cycles/sec, which are also referred to as Hz, or they could be [spatial](https://en.wikipedia.org/wiki/Spatial_frequency) (e.g., frequency could be in cycle/meter).
 
-The [Fourier transform](https://en.wikipedia.org/wiki/Fourier_transform) is given by
+Formally, the [Fourier transform](https://en.wikipedia.org/wiki/Fourier_transform) is defined as
 ```math
 \begin{align}
 X(\xi)
@@ -53,7 +64,8 @@ x(t)e^{-2\pi\xi t \jmath}\mathrm{d}t
 ```
 where the Fourier transform at each frequency is a complex number $X(\xi)\in\mathbb{C}$.
 
-To retrieve the signal $x(t)$ from the Fourier transform $X(\xi)$, the inverse Fourier transform is used, which is given by
+The inverse Fourier transform is used to retrieve the signal $x(t)$ from the Fourier transform $X(\xi)$.
+The inverse Fourier transform is
 ```math
 \begin{align}
 x(t)
@@ -66,18 +78,19 @@ x(t)
 
 # ╔═╡ f4a89cf7-6c0e-43b3-b09b-81669d9c280d
 md"""
-
 ## Why complex numbers?
-The *frequency components* refer to the components that characterize a sinusoidal function with a given frequency.
+The Fourier transform was introduced in the previous section as a transform that decomposes a signal into its *frequency components*.
+But what is meant by *frequency components*?
+Well, the *frequency components* refer to the components that characterize a sinusoidal function for a given frequency.
 More specifically, a sinusoidal function
 ```math
 \begin{align}
 y(t; A, \xi, \theta) = A\cos(2\pi\xi t + \theta)
 \end{align}
 ```
-is characterized by its frequency $\xi\in\mathbb{R}_{+}$, amplitude $A\in\mathbb{R}_{+}$, and phase $\theta\in[0,2\pi)$.
+is characterized, or parametrized, by its frequency $\xi\in\mathbb{R}_{+}$, amplitude $A\in\mathbb{R}_{+}$, and phase $\theta\in[0,2\pi)$.
 Therefore, for a given frequency $\xi$, the sinusoidal function is described by its amplitude $A\in\mathbb{R}_{+}$ and phase $\theta\in[0,2\pi)$.
-The two variables can be described nicely using a complex number $z\in\mathbb{C}$, where the magnitude represents the amplitude and the argument represents the phase.
+The two variables can be described nicely using a complex number $z\in\mathbb{C}$, where the magnitude represents the signal's amplitude and the argument represents the signal's phase.
 That is,
 ```math
 A = \vert z\vert \in \mathbb{R}_{+},
@@ -85,17 +98,30 @@ A = \vert z\vert \in \mathbb{R}_{+},
 \theta = \tan^{-1}\left(\frac{\operatorname{Re}(z)}{\operatorname{Im}(z)}\right).
 ```
 
-Dealing with a single complex variable is perhaps easier than working with two (real) variables, one of which belongs to a special domain $[0, 2\pi)$ (i.e., the phase).
-Therefore, the Fourier transform uses complex numbers to characterize sinusoidal functions.
+Dealing with a single complex variable is perhaps more practical than working with two (real) variables, one of which belongs to a special domain $[0, 2\pi)$ (i.e., the phase).
+As such, the Fourier transform uses complex numbers to characterize sinusoidal functions.
 
-The output of Fourier transform $X(\jmath\omega)$ is a complex number that represents the *amplitude* and *phase* of a sinusoidal function with frequency $\xi$.
+The output of Fourier transform $X(\xi)$ is a complex number that represents the *amplitude* and *phase* of a sinusoidal function with frequency $\xi$.
 The *amplitude* is interpreted as the contribution of such sinusoidal function into the temporal signal $x(t)$.
+"""
 
-For example, a signal
+# ╔═╡ 07bf51df-84d3-4b61-bae2-c5e965a29691
+md"""
+## Example
+Consider the signal
 ```math
-x(t) = \cos(2\pi t) + 3\sin(2\pi 2 t) = \cos(2\pi t) + 3\cos(2\pi 2 t + \pi/2),
+x(t) = \cos(2\pi t) + 3\sin(2\pi 2 t) = \cos(2\pi t) + 3\cos(2\pi 2 t - \pi/2).
 ```
-will have the Fourier transform
+The signal consists of two $\cos$ components.
+1. The first has a frequency of $\xi_{1} = 1$ Hz and a phase of $\theta_{1} = 0$. As such, the frequency component is
+```math
+z_{1} = 1 \cos(0) + \jmath\sin(0) = 1 + \jmath 0.
+```
+2. The second has a frequency of $\xi_{2} = 3$ Hz and a phase of $\theta_{2} = -\pi/2$. As such, the frequency component is
+```math
+z_{2} = 3 \cos(-\pi/2) + 3\jmath\sin(-\pi/2) = 0 - 3\jmath.
+```
+Combining the above results, the Fourier transform is
 ```math
 X(\xi) =
 \begin{cases}
@@ -104,7 +130,6 @@ X(\xi) =
 0, & \text{otherwise}.
 \end{cases}
 ```
-
 """
 
 # ╔═╡ 24a64d23-2a86-41a9-9350-760838bcb186
@@ -114,7 +139,7 @@ In practice, signals a recorded as *discrete* signals, not continuous.
 Discretized signals are usually referred to as *sequences*.
 The [discrete-time Fourer transform](https://en.wikipedia.org/wiki/Discrete-time_Fourier_transform) (DTFT) is introduced as a Fourier transform on sequences.
 The *discrete-time* Fourier transform takes a discrete-time signal $x[n]\in\mathbb{R}$ where $n\in\mathbb{Z}$, and returns a *continuous-time* transform $X(\xi)\in\mathbb{C}$ (i.e., $\xi\in\mathbb{R}_{+}$).
-This is different from the discrete Fourier transform discussed in the next section, which takes the same type of input but instead returns a *discrete-time* transform $X[k]\in\mathbb{C}$, where $k\in\mathbb{Z}$.
+This is different from the discrete Fourier transform discussed in the next section, which takes the same type of input but returns a *discrete-time* transform $X[k]\in\mathbb{C}$ instead, where $k\in\mathbb{Z}$.
 
 A discrete-time sequence $x[n]$ can be sampled from a continuous-time signal $x_{c}(t)$ through an *ideal continuous-to-discrete-time (C/D) converter*
 ```math
@@ -132,28 +157,29 @@ The DTFT is given by
 X_{2\pi}(\omega)
 = \sum_{n=-\infty}^{\infty}x[n] e^{-\jmath\omega n},
 ```
-where $\omega$ has units of `rad/sample`, or it can be given by
+where $\omega$ has units of `rad/sample`, or equivalently it can be given by
 ```math
 X_{f_{s}}(\xi) = 
-\sum_{n=-\infty}^{\infty}x[n] e^{-\jmath2\pi\xi/f_{s} n},
+\sum_{n=-\infty}^{\infty}x[n] e^{-\jmath2\pi(\xi/f_{s}) n},
 ```
-where $\xi$ has units of Hz.
+where $\xi$ has units of Hz (i.e., `[cycle/sec]`).
 
 The relation between the two is $X_{f_{s}}(\xi) = X_{2\pi}(2\pi \xi/f_{s})$ and the relation between the frequencies is
 ```math
 \omega = 2\pi \xi / f_{s},
 ```
-where the dimensional analysis is `[rad/sample] = [2π rad/cycle] [cycle / sec] / [sample/sec]`.
+where the dimensional analysis is `[rad/sample] = [2π rad/cycle] [cycle/sec] / [sample/sec]`.
 
-Note that the frequencies in the Fourier transform are different than those in the  Discrete-Time Fourier Transform, which are in [normalized units](https://en.wikipedia.org/wiki/Normalized_frequency_(signal_processing)), which have units of `radians/sample`.
+**Note** that the frequencies in the Fourier transform are different than those in the  Discrete-Time Fourier Transform, which are in [normalized units](https://en.wikipedia.org/wiki/Normalized_frequency_(signal_processing)), which have units of `radians/sample`.
 """
 
 # ╔═╡ 02d0664d-1ff9-4938-8027-6248cec09280
 md"""
 # Discrete Fourier transform (DFT)
-The DTFT transforms a discrete-time signal $x[n]$ for $k\in\mathbb{Z}$ into a continuous-time transform $X(\xi)$ for $\xi\in\mathbb{R}$.
-On the other hand, the [discrete Fourier transform](https://en.wikipedia.org/wiki/Discrete_Fourier_transform) (DFT) transforms a discrete-time signal $x[n]$ for $n\in\mathbb{Z}$ into a discrete-time signal $X[k]$ for $k\in\mathbb{Z}$.
-The DFT is the basis to the [fast Fourier transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) (FFT) algorithm and sometimes the two names are used interchangeably.
+The DTFT, introduced in the previous section, transforms a discrete-time signal $x[n]$ for $k\in\mathbb{Z}$ into a *continuous-time* transform $X(\xi)$ for $\xi\in\mathbb{R}$.
+On the other hand, the [discrete Fourier transform](https://en.wikipedia.org/wiki/Discrete_Fourier_transform) (DFT) transforms a discrete-time signal $x[n]$ for $n\in\mathbb{Z}$ into a *discrete-time* transform $X[k]$ for $k\in\mathbb{Z}$.
+The DFT is the basis of the [fast Fourier transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) (FFT) algorithm and sometimes the two names are used interchangeably.
+The difference is subtle in that the DFT is a *transform*, whereas the FFT is an *algorithm*.
 
 Note that similar to the DTFT, the frequenceis of the DFT (and equivalently, FFT) have units of rad/sample.
 It is then possible to convert the units to (radians/sec) using the sampling frequency.
@@ -175,7 +201,7 @@ md"""
 Applying the DFT, or FFT algorithm, is not always straightforward and requires some "tweaking" to get the expected results.
 To demonstrate these tweaks, an example is presented, which is taken from [this video](https://www.youtube.com/watch?v=mkGsMWi_j4Q&t=484s&ab_channel=SimonXu).
 
-Let a sequence be given by
+Consider the discrete-time signal
 ```math
 x[n] = \sin(2\pi t_n) = \sin(2\pi n / f_{s}), \quad n=0,\ldots,7,
 ```
@@ -186,7 +212,7 @@ where the signal has a frequency of 1 Hz, which is sampled at $f_{s} = 8~\text{H
 begin
 	N = 8;
 	t = (0:N-1) ./ N;
-	x = sin.(2π * t);
+	x = sin.(2π * t);	
 end;
 
 # ╔═╡ dac0aac7-a4aa-4c7f-8ba6-6127958718da
@@ -194,7 +220,7 @@ plot(t, x, markershape=:circle, xlabel="\$t_n\$ [sec]", ylabel="\$x[n]\$")
 
 # ╔═╡ b46c0d2f-8e17-4880-be07-264e282e7a88
 md"""
-The FFT (which is the same as DFT) is given by
+The FFT (which is the same as DFT) is
 """
 
 # ╔═╡ 6699be3b-284a-405f-8906-4048c2facb99
@@ -202,7 +228,7 @@ X = round.(fft(x))
 
 # ╔═╡ 05a3a583-4e01-499e-ba70-0379a974401a
 md"""
-and the magnitude is plotted
+and the magnitude is plotted below.
 """
 
 # ╔═╡ 2f6c573b-032a-468c-b457-0c946ede124e
@@ -213,11 +239,11 @@ end
 
 # ╔═╡ a6cf1580-b40e-4f01-a9c5-9ffc4a6e49c9
 md"""
-Here are few things to note about the FFT plot:
-1. The FFT is symmetric about its Nyquist limit, which is equal to $f_{s}/2$ (in this example, it's 4 Hz)
-2. The magnitude (4) is not representative of the amplitude of the underlying function (1)
+Here are few things to note about the FFT magnitude plot:
+1. The FFT is symmetric about its [Nyquist limit](https://en.wikipedia.org/wiki/Nyquist_frequency), which is equal to $f_{s}/2$ (in this example, it's 4 Hz)
+2. The magnitude in the above plot (4) is not representative of the true amplitude of the underlying function, which is 1.
 
-The remedy to the first problem is to use a one-sided FFT, which basically looks at half the first half frequencies and doubles its values.
+The remedy to the first problem is to use a one-sided FFT, which basically looks at the first half frequencies and doubles its values (i.e., the "energy" is transferred from one half to the other).
 In other words, it takes the FFT components after the Nyquist limit and adds them to the frequencies prioir to the Nyquist limit.
 That is,
 ```math
@@ -289,9 +315,9 @@ manifest_format = "2.0"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
-git-tree-sha1 = "6f1d9bc1c08f9f4a8fa92e3ea3cb50153a1b40d4"
+git-tree-sha1 = "69f7020bd72f069c219b5e8c236c1fa90d2cb409"
 uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
-version = "1.1.0"
+version = "1.2.1"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -328,9 +354,9 @@ version = "1.16.1+1"
 
 [[deps.ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "9489214b993cd42d17f44c36e359bf6a7c919abf"
+git-tree-sha1 = "2dd813e5f2f7eec2d1268c57cf2373d3ee91fcea"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "1.15.0"
+version = "1.15.1"
 
 [[deps.ChangesOfVariables]]
 deps = ["ChainRulesCore", "LinearAlgebra", "Test"]
@@ -346,9 +372,9 @@ version = "0.7.0"
 
 [[deps.ColorSchemes]]
 deps = ["ColorTypes", "ColorVectorSpace", "Colors", "FixedPointNumbers", "Random"]
-git-tree-sha1 = "7297381ccb5df764549818d9a7d57e45f1057d30"
+git-tree-sha1 = "1fd869cc3875b57347f7027521f561cf46d1fcd8"
 uuid = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
-version = "3.18.0"
+version = "3.19.0"
 
 [[deps.ColorTypes]]
 deps = ["FixedPointNumbers", "Random"]
@@ -437,10 +463,10 @@ uuid = "c87230d0-a227-11e9-1b43-d7ebe4e7570a"
 version = "0.4.1"
 
 [[deps.FFMPEG_jll]]
-deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "JLLWrappers", "LAME_jll", "Libdl", "Ogg_jll", "OpenSSL_jll", "Opus_jll", "Pkg", "Zlib_jll", "libass_jll", "libfdk_aac_jll", "libvorbis_jll", "x264_jll", "x265_jll"]
-git-tree-sha1 = "d8a578692e3077ac998b50c0217dfd67f21d1e5f"
+deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "JLLWrappers", "LAME_jll", "Libdl", "Ogg_jll", "OpenSSL_jll", "Opus_jll", "Pkg", "Zlib_jll", "libaom_jll", "libass_jll", "libfdk_aac_jll", "libvorbis_jll", "x264_jll", "x265_jll"]
+git-tree-sha1 = "ccd479984c7838684b3ac204b716c89955c76623"
 uuid = "b22a6f82-2f65-5046-a5b2-351ab43fb4e5"
-version = "4.4.0+0"
+version = "4.4.2+0"
 
 [[deps.FFTW]]
 deps = ["AbstractFFTs", "FFTW_jll", "LinearAlgebra", "MKL_jll", "Preferences", "Reexport"]
@@ -498,9 +524,9 @@ version = "0.64.4"
 
 [[deps.GR_jll]]
 deps = ["Artifacts", "Bzip2_jll", "Cairo_jll", "FFMPEG_jll", "Fontconfig_jll", "GLFW_jll", "JLLWrappers", "JpegTurbo_jll", "Libdl", "Libtiff_jll", "Pixman_jll", "Pkg", "Qt5Base_jll", "Zlib_jll", "libpng_jll"]
-git-tree-sha1 = "3a233eeeb2ca45842fe100e0413936834215abf5"
+git-tree-sha1 = "c8ab731c9127cd931c93221f65d6a1008dad7256"
 uuid = "d2c73de3-f751-5644-a686-071e5b155ba9"
-version = "0.64.4+0"
+version = "0.66.0+0"
 
 [[deps.GeometryBasics]]
 deps = ["EarCut_jll", "IterTools", "LinearAlgebra", "StaticArrays", "StructArrays", "Tables"]
@@ -751,10 +777,10 @@ deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[deps.MbedTLS]]
-deps = ["Dates", "MbedTLS_jll", "Random", "Sockets"]
-git-tree-sha1 = "1c38e51c3d08ef2278062ebceade0e46cefc96fe"
+deps = ["Dates", "MbedTLS_jll", "MozillaCACerts_jll", "Random", "Sockets"]
+git-tree-sha1 = "891d3b4e8f8415f53108b4918d0183e61e18015b"
 uuid = "739be429-bea8-5141-9913-cc70e7f3736d"
-version = "1.0.3"
+version = "1.1.0"
 
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -784,9 +810,10 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 
 [[deps.NaNMath]]
-git-tree-sha1 = "737a5957f387b17e74d4ad2f440eb330b39a62c5"
+deps = ["OpenLibm_jll"]
+git-tree-sha1 = "a7c3d1da1189a1c2fe843a3bfa04d18d20eb3211"
 uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
-version = "1.0.0"
+version = "1.0.1"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
@@ -807,9 +834,9 @@ uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "ab05aa4cc89736e95915b01e7279e61b1bfe33b8"
+git-tree-sha1 = "e60321e3f2616584ff98f0a4f18d98ae6f89bbb3"
 uuid = "458c3c95-2e84-50aa-8efc-19380b2a3a95"
-version = "1.1.14+0"
+version = "1.1.17+0"
 
 [[deps.OpenSpecFun_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Pkg"]
@@ -858,15 +885,15 @@ version = "3.0.0"
 
 [[deps.PlotUtils]]
 deps = ["ColorSchemes", "Colors", "Dates", "Printf", "Random", "Reexport", "Statistics"]
-git-tree-sha1 = "bb16469fd5224100e422f0b027d26c5a25de1200"
+git-tree-sha1 = "9888e59493658e476d3073f1ce24348bdc086660"
 uuid = "995b91a9-d308-5afd-9ec6-746e21dbc043"
-version = "1.2.0"
+version = "1.3.0"
 
 [[deps.Plots]]
 deps = ["Base64", "Contour", "Dates", "Downloads", "FFMPEG", "FixedPointNumbers", "GR", "GeometryBasics", "JSON", "Latexify", "LinearAlgebra", "Measures", "NaNMath", "Pkg", "PlotThemes", "PlotUtils", "Printf", "REPL", "Random", "RecipesBase", "RecipesPipeline", "Reexport", "Requires", "Scratch", "Showoff", "SparseArrays", "Statistics", "StatsBase", "UUIDs", "UnicodeFun", "Unzip"]
-git-tree-sha1 = "2402dffcbc5bb1631fb4f10cb5c3698acdce29ea"
+git-tree-sha1 = "d0a61518267b44a70427c0b690b5e993a4f5fe01"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
-version = "1.30.1"
+version = "1.30.2"
 
 [[deps.PlutoUI]]
 deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
@@ -965,15 +992,20 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[deps.SpecialFunctions]]
 deps = ["ChainRulesCore", "IrrationalConstants", "LogExpFunctions", "OpenLibm_jll", "OpenSpecFun_jll"]
-git-tree-sha1 = "a9e798cae4867e3a41cae2dd9eb60c047f1212db"
+git-tree-sha1 = "d75bda01f8c31ebb72df80a46c88b25d1c79c56d"
 uuid = "276daf66-3868-5448-9aa4-cd146d93841b"
-version = "2.1.6"
+version = "2.1.7"
 
 [[deps.StaticArrays]]
-deps = ["LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "2bbd9f2e40afd197a1379aef05e0d85dba649951"
+deps = ["LinearAlgebra", "Random", "StaticArraysCore", "Statistics"]
+git-tree-sha1 = "e972716025466461a3dc1588d9168334b71aafff"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.4.7"
+version = "1.5.1"
+
+[[deps.StaticArraysCore]]
+git-tree-sha1 = "66fe9eb253f910fe8cf161953880cfdaef01cdf0"
+uuid = "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
+version = "1.0.1"
 
 [[deps.Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
@@ -987,15 +1019,15 @@ version = "1.4.0"
 
 [[deps.StatsBase]]
 deps = ["DataAPI", "DataStructures", "LinearAlgebra", "LogExpFunctions", "Missings", "Printf", "Random", "SortingAlgorithms", "SparseArrays", "Statistics", "StatsAPI"]
-git-tree-sha1 = "8977b17906b0a1cc74ab2e3a05faa16cf08a8291"
+git-tree-sha1 = "48598584bacbebf7d30e20880438ed1d24b7c7d6"
 uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
-version = "0.33.16"
+version = "0.33.18"
 
 [[deps.StructArrays]]
 deps = ["Adapt", "DataAPI", "StaticArrays", "Tables"]
-git-tree-sha1 = "9097e2914e179ab1d45330403fae880630acea0b"
+git-tree-sha1 = "ec47fb6069c57f1cee2f67541bf8f23415146de7"
 uuid = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
-version = "0.6.9"
+version = "0.6.11"
 
 [[deps.StructTypes]]
 deps = ["Dates", "UUIDs"]
@@ -1227,6 +1259,12 @@ git-tree-sha1 = "e45044cd873ded54b6a5bac0eb5c971392cf1927"
 uuid = "3161d3a3-bdf6-5164-811a-617609db77b4"
 version = "1.5.2+0"
 
+[[deps.libaom_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "3a2ea60308f0996d26f1e5354e10c24e9ef905d4"
+uuid = "a4ae2306-e953-59d6-aa16-d00cac43593b"
+version = "3.4.0+0"
+
 [[deps.libass_jll]]
 deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "HarfBuzz_jll", "JLLWrappers", "Libdl", "Pkg", "Zlib_jll"]
 git-tree-sha1 = "5982a94fcba20f02f42ace44b9894ee2b140fe47"
@@ -1283,11 +1321,12 @@ version = "0.9.1+5"
 """
 
 # ╔═╡ Cell order:
-# ╟─6a968844-12d0-44f8-96de-42630497d057
-# ╠═6d66d952-3b87-468c-ad35-39790b31d846
+# ╠═a4a34b53-0d29-4c6e-b1cb-9eece1accbb7
+# ╟─6689be7b-68de-4c73-a3d3-8bff9bb96662
 # ╟─831f8744-d659-11ec-3d14-090c4a016610
 # ╟─5dec98a0-95b1-4cf5-a71f-27f3d4ac8139
 # ╟─f4a89cf7-6c0e-43b3-b09b-81669d9c280d
+# ╟─07bf51df-84d3-4b61-bae2-c5e965a29691
 # ╟─24a64d23-2a86-41a9-9350-760838bcb186
 # ╟─02d0664d-1ff9-4938-8027-6248cec09280
 # ╟─884db842-f6bb-4fc3-be7d-93a157f9ff73
@@ -1296,7 +1335,7 @@ version = "0.9.1+5"
 # ╟─b46c0d2f-8e17-4880-be07-264e282e7a88
 # ╠═6699be3b-284a-405f-8906-4048c2facb99
 # ╟─05a3a583-4e01-499e-ba70-0379a974401a
-# ╟─2f6c573b-032a-468c-b457-0c946ede124e
+# ╠═2f6c573b-032a-468c-b457-0c946ede124e
 # ╟─a6cf1580-b40e-4f01-a9c5-9ffc4a6e49c9
 # ╠═c523902a-dee5-425b-8334-8a518bbef4bc
 # ╟─388fdaaa-3cc5-4f7b-988d-2ebb96c0bf49
