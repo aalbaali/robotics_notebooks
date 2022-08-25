@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.0
+# v0.19.5
 
 using Markdown
 using InteractiveUtils
@@ -1001,7 +1001,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 
 # ╔═╡ Cell order:
 # ╠═bff69758-b72f-11ec-302f-d381893b0229
-# ╟─c6010a83-3fd2-4f24-88de-6ebd685e78ca
+# ╠═c6010a83-3fd2-4f24-88de-6ebd685e78ca
 # ╟─24395b9c-ab7e-40fb-8438-032d34e03ca0
 # ╟─8332f1c2-7b68-4fb4-acab-cf9838259796
 # ╟─a16ccdde-0b0c-4647-a1a6-20835be22f5c
